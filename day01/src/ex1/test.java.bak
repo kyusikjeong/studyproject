@@ -1,0 +1,16 @@
+
+public class test {
+	public static void main(String[] args) {
+		
+		String strValue = "A";
+		double d = 5.7;
+		
+		
+		byte bt = 10;
+
+		long var3 = 10000000000L;
+		double re = 5+2.5;
+		float re2 = 5+2.5F;
+		int result = 5+bt;
+	}
+}
