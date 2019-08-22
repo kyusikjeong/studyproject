@@ -1,0 +1,356 @@
+
+---alias         
+-- as 다음에 오는것은 별칭. 
+--공백을 단어 사이에 넣으려면 " " 를 넣어서 감싸준다.
+select saname as 사원이름 from sawon;
+select saname 사원이름 from sawon;       
+select saname "사원 이름" from sawon;   
+
+
+
+--문자열 연결 연산자.  || -> 파이프 연산자. 컬럼간에 문자열을 붙여준다. 연결되면 하나의 컬럼이 된다.
+select saname || '의 사원 번호는' || sabun || '입니다' as sainfo
+from sawon;
+
+--비교 연산자.  == , !=(<>) , <= , >= , < , > (교재 참고)
+-- + , - , * , / 사칙연산
+select saname,sapay/12 as 월급 from sawon;
+select saname,sapay/2*100 as 보너스 from sawon;
+
+--조건 10번 부서만 적용
+select saname, deptno, sapay /2*100 as 보너스 from sawon
+where deptno = 10;
+
+-- 2000~ 3000 사이에 급여를 받는 사원
+--and , or
+select saname, deptno ,sapay from sawon 
+where deptno >= 10 and deptno <=30;
+
+--between A and B
+
+select saname, sapay,deptno from sawon where sapay between 2000 and 3000;
+
+--or
+--부서번호가 10,20 부서만 출력하시오.
+select deptno,saname from sawon where deptno = 10 or deptno= 20;
+
+--in 연산자 .or 와 같은 역할을 하지만 만들기에 따라 코드를 줄여서 만들 수 있다. 프로그래밍이 수월해진다.
+--not in() 은 해당인자를 제외한 값들만 출력한다는것. 필수적으로 이해해야함
+select deptno, saname from sawon
+where deptno in (10,20);
+
+select deptno, saname from sawon
+where deptno not in (10,20);
+
+--like 문자열 연산자.
+--% 어떤 여러 문자열
+-- _ 어떤 한 문자열
+-- 예) 이름중에 "길"이 들어가는 사원을 출력하기.
+---    _ 한개당 한 문자열을 대체하므로  _ _ 이 하면 이로 끝나는 세 글자의 이름만 들어온다. 
+select saname from sawon where saname like '%길%';
+select saname from sawon where saname like '__이';   
+
+--dual 테이블: 가상 테이블
+-- 한 행으로 결과를 출력하기 위한 가상테이블
+--산술 연산 , 가상 컬럼등의 값을 한번에 출력하기 위한 목적으로 사용
+
+select 100* 2 result from dual;
+select sysdate result from dual;  --오늘 날짜 출력
+select * from dual;   --아무 의미없는 row 값이 존재.
+desc dual;
+
+
+/*
+이름    널? 유형          
+----- -- ----------- 
+DUMMY    VARCHAR2(1) 
+
+/*
+
+1.개발자는 쿼리를 개발할때 어떻게 다이나믹하게 만들지
+2. 효율적으로 만들지 생각해야함
+
+
+
+ceil, floor
+
+---숫자함수 
+select -10, abs(-10) from dual;   --abs -> 절대값으로 변경(음수부호 제거)
+select sin(10),cos(10), tan(10) from dual;
+
+--반올림
+select round(888.8888) from dual;
+select round(888.8888,0) from dual;
+select round(888.8888,2) from dual;
+select round(888.8888,3) from dual;
+
+--자리수를 지정한 버림 : trunc
+select trunc(888.8888) from dual;
+select trunc(888.8888,0) from dual;
+select trunc(888.8888,-2) from dual;
+select trunc(888.8888,-3) from dual;
+
+--상한값(ceil), 하한값( floor)
+select ceil(10.001), floor(10.99) from dual; --ceil > 올림 , floor -> 버림. ceil 은 페이징 처리 할때 주로 사용.
+
+--나눈 나머지값 구하기 n%2 ==0 . mod (나누어지는숫자,나눌숫자)
+
+select mod(10,3),mod(27,5) from dual;
+
+
+---문자함수. 필요한 부분만 추출할때 사용..
+
+ --length() :  문자열의 길이를 구하는 함수.
+select length('kostaBigdata Oracle') from dual;
+
+--lower / upper : 소문자, 대문자
+
+select lower ('kostaBigdata Oracle') ,upper ('kostaBigdata Oracle')
+from dual;
+ 
+--initcap(): 문자열의 첫번째 문자만 대문자로 변환
+select initcap('kosta bigdata oracle') from dual;
+
+select * from nls_database_parameters where parameter like '%CHARACTERSET%';
+--AL32UTF8 : 한글 정렬 기능을 지원 3바이트 공간을 차지함
+
+--lengthb : 문자열의 바이트 수를 반환
+select lengthb('kosta'), length('kosta')from dual;
+select lengthb('오라클'), length('오라클')from dual;
+ 
+ 
+--문자열 자르기 (trim), rtrim, ltrim 좌우 공백제거(가운데는 제거못함)
+select trim(' kosta bigdata       '),length(' kosta bigdata       '),length(trim(' kosta bigdata       ')) from dual;
+
+select rtrim(' kosta bigdata       '),length(' kosta bigdata       '),length(rtrim(' kosta bigdata       ')) from dual;
+select ltrim(' kosta bigdata       '),length(' kosta bigdata       '),length(ltrim(' kosta bigdata       ')) from dual;
+
+
+select trim('*' from '*****kosta bigdata *****') from dual;   --패턴 자르기
+
+--instr (문자열, 찾을문자열, 검색시작, n번째)
+--문자열 중에서 지정한 특정문자가 포함된 위치를 반환하는 함수 : java의 indexOf
+
+--******************************************************************************
+select instr('kosta_kosta','k',1,2) from dual;
+select instr('kosta_kosta','k',1,1) from dual;
+select instr('kosta_kosta','k',-1,1) from dual;
+select instr('kosta_kosta','k',-1,2) from dual;
+--******************************************************************************
+
+--substr(문자열 ,n부터,n개)
+--오라클 인덱스는 1부터 시작 **********
+select substr('Welcome to Oracle',4) from dual;
+select substr('Welcome to Oracle',5,3) from dual;
+select substr('Welcome to Oracle',-3,3) from dual;
+
+
+--연습문제) 실습테이블 만들기
+create table memphone(
+num number(3) constraint memphone_num_pk primary key,
+name varchar2(20),
+pnum varchar2(25));
+
+create sequence memphone_seq --시퀀스를 생성하면 데이터를 넣을때마다 nextVal() 을 호출하여 설정한 값을 증가시킨다. 
+                             --만약 중간의 값이 삭제되면 해당 시퀀스를 가진 값은 채워지지 않고 사라진 상태로 진행된다.
+increment by 1
+start with 1;
+
+insert into memphone values(memphone_seq.nextVal,'김길동','02)123-1231');
+insert into memphone values(memphone_seq.nextVal,'가가가','032)123-1231');
+insert into memphone values(memphone_seq.nextVal,'나나나','042)123-1231');
+insert into memphone values(memphone_seq.nextVal,'다다다','022)123-1231');
+insert into memphone values(memphone_seq.nextVal,'라라라','012)123-121');
+insert into memphone values(memphone_seq.nextVal,'마마마','092)123-1231');
+
+select * from memphone;
+
+
+--memberphone 테이블에서 사용자의 전화번호 중에
+-- 사용자,국번, 전화번호 형태로 출력하라.
+
+select * from memphone;
+
+select name as 사용자,substr(pnum,1,instr(pnum,')')-1 ) as 국번 ,
+            substr(pnum,instr(pnum,')')+1  )as 전화번호 
+from memphone;
+
+select substr('Welcome to Oracle',5,3) from dual;
+
+--문자채우기 함수
+
+select * from gogek;
+
+select goname as 고객명, gojumin as 주민번호,
+
+
+as 성별 
+
+from gogek;   
+
+
+
+--(연습문제 주민번호 뒷자리를 전부 별로 채우기
+
+select substr(gojumin,8,1) from gogek;
+
+select decode(gojumin,'-','★') as "주민번호"
+from gogek;
+
+select goname,gojumin, 
+case 
+    when substr(gojumin,8,1) = 1 then '남자' 
+    when substr(gojumin,8,1) = 2 then '여자'
+    when substr(gojumin,8,1) = 3 then '남자'
+    when substr(gojumin,8,1) = 4 then '여자'
+    
+    end "성별"
+from gogek;  
+
+
+select saname,deptno,
+ case 
+    when deptno= 50 then '개발부' 
+    when deptno= 20 then '영업부'
+    when deptno =30 then '전산부'
+    else '총관리부'
+    end "임시부서명"
+ from sawon;
+ 
+-- decode 함수: oracle 에서만 제공하는 SQL함수
+-- decode(기준값,조건1,결과1,조건2, 결과2,,,,그외 ) "컬럼"
+-- case 함수:decode의 기능을 확장한 함수
+/*
+    case [기준값] when 기준값 조건값1 then 결과1 
+    when 기준값 조건값2 then 결과2
+    else 그외의 결과
+    end "컬럼명" 
+    
+    차이: DECODE 함수는 기준값을 비교하는 컬럼값이 "-" 비교를 통해서만 조건과 일치
+    case 산술,논리,관계 다양한 비교가 가능하다.
+
+*/
+
+
+
+
+select deptno , dname from dept; 
+
+--총무부의 사원들이 총무부-> 총관리부 로 임시로 표현하고 싶을때.. 10번 부서일경우 view가 
+--총무부가 아닌 총관리부로 보여져야 할때
+select saname,deptno,
+ case 
+    when deptno= 50 then '개발부' 
+    when deptno= 20 then '영업부'
+    when deptno =30 then '전산부'
+    else '총관리부'
+    end "임시부서명"
+ from sawon;
+
+
+
+쿼리 연습문제 ____________
+
+select * from t_reg where regexp_like(text,'[a-z]');
+
+select * from t_reg where regexp_like(text,'[A-Z]');
+select * from t_reg where regexp_like(text,'[a-zA-Z]');
+select * from t_reg where regexp_like(text,'[a-z] ');
+select * from t_reg where regexp_like(text,'[a-z] [0-9]');
+select * from t_reg where regexp_like(text,'[[:space:]]');
+select * from t_reg where regexp_like(text,'[A-Z]{2}');
+select * from t_reg where regexp_like(text, '[A-Z]{3}');
+select * from t_reg where regexp_like(text,'[A-Z]{4}');
+select * from t_reg where regexp_like(text,'[0-9]{3}');
+select * from t_reg where regexp_like(text,'[A-Z][0-9]{3}');
+select * from t_reg where regexp_like(text,'[0-9][A-Z]{3}');
+select * from t_reg where regexp_like(text,'[A-Z');
+select * from t_reg where regexp_like(text,'[[:upper:]]');
+select * from t_reg where regexp_like(text,'[A-Za-z]');
+select * from t_reg where regexp_like(text,'^[0-9A-Z]');
+select * from t_reg where regexp_like(text,'^[a-z|^[0-9]');
+
+select name , id from student where regexp_like(id,'^M(a|o)');
+select * from t_reg where regexp_like(text,'[a-zA-Z]$');
+select * from t_reg where regexp_like(text,'[[:alpha:]]$');
+select * from t_reg where regexp_like(text,'^[^a-z]');
+select * from t_reg where regexp_like(text,'^[^0-9]');
+select * from t_reg where regexp_like(text,'^[^0-9a-z]');
+
+select * from t_reg;
+select * from t_reg where regexp_like(text,'[^a-z]');
+select * from t_reg where not regexp_like(text,'[a-z]');
+select name,tel from student where regexp_like(tel,'^[0-9]{2}\)[0-9]{4}');
+select name,id from student where regexp_like(id, '^...r.');
+select * from t_reg2;
+select * from t_reg2 where regexp_like(ip.'^[172]{3}\.[16]{2}\.[168]{3}');
+select * from t_reg where regexp_like(text,'[a-zA-Z]');
+select * from t_reg where not regexp_like(text,'[a-zA-Z]');
+select * from t_reg where not regexp_like(text,'[0-9]');
+select * from t_reg where regexp_like(text,'!');
+select * from t_reg where regexp_like(text,'?');
+select * from t_reg where regexp_like(text,'\?');
+select * from t_reg where regexp_like(text,'\*');
+select * from t_reg where not regexp_like(text,'\?');
+
+col "NO -> CHAR" FOR a20
+select text, regexp_replace(text,'[[:dogot:]]','*') "NO -> CHAR" from t_reg;
+
+col "Add Char" FOR a30
+select text,regexp_replace(text.'([0-9]','\1-*') "Add Char" from t_reg;
+
+set line 200
+col no for 999
+col ip for a20
+col "Dot Remove" FOR a20
+select no,ip, regexp_replace(ip,'\.','') "Dot Remove" from t_reg2;
+
+col replace FOR a20
+select no,ip, regexp_replace(ip,'\.','/',1,1) "REPLACE" from t_reg2;
+select regexp_replace('aaa bbb','(){1,}','') from dual;
+
+
+select regexp_replace('aaa bbb','( ){2,}','') "One"
+       regexp_replace('aaa bbb','( ){2,}','') "Two" from dual;
+       
+
+select regexp_replace('aaa bbb','( ){2,}','*') "One"
+       regexp_replace('aaa  bbb','( ){2,}','*') "Two" 
+       regexp_replace('aaa   bbb','( ){2,}','*') "Three" from dual;
+       
+set verify OFF
+select studno, name, id from student where id = regexp_replace('&id','(){1,}','');
+
+select studno, name, id from student where id = LOWER(regexp_replace('&id','(){1,}',''));
+
+select regedit_replace('20141023',
+                       '([[:digit:]]{4})([[:digit:]]{2})([[:digit:]]{2})', '\1-\2-\3') from dual;
+
+select regexp_substr('ABC*  *DEF $GHI%KJL','[^]+[DEF]') from dual;
+
+col url FOR a20
+select name , LTRIM (regexp_substr(hpage,'/([[:alnum:]]+\.?){3,4}?').'/') "URL" from professor where hpage IS NOT NULL;
+
+
+col email FOR a20
+col name FOR a20
+col domain FOR a20
+select name , LTRIM(regexp_substr(email,'@[[:alnum:]]+\.?){3,4}?').'@') domain from professor where deptno IN (101,201);
+
+col result FOR a10
+select regexp_substr('sys/oracle@racdb:1521:racdb','[^:]+',1,3) result from dual;
+
+select regexp_substr('sys/oracle@racdb:1521:racdb','[^:]+',1,2) result from dual;
+
+col result FOR a15
+select regexp_substr('sys/oracle@racdb:1521:rac','[^/:]+',1,2) result from dual;
+select regexp_substr('sys/oracle@racdb:1521:rac','[^/:]+',1,1) result from dual;
+
+set pagesize 50
+select text,regexp_count(text,'A') from t_reg;
+select text,regexp_count(text,'C',3) from t_reg;
+
+select text,regexp_count(text,'C') "RESULT 1" , regexp_count(text,'C',1,'i') "RESULT 2" , from t_reg;
+select text, regexp_count(text,'.') RESULT 1 , regexp_count(text,'\.') RESULT2 from t_reg;
+select text, regexp_count(text,'aa') RESULT 1 , regexp_count(text,'a{2}') , regexp_count(text,'(a)(a)') RESULT3 from t_reg;
+	
