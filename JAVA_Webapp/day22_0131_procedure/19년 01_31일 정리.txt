@@ -1,0 +1,216 @@
+accept bun prompt '사원번호 입력 :'
+declare
+	vsabun sawon.sabun%type;
+	vsaname sawon.saname%type;
+	vsapay sawon.sapay%type;
+
+begin
+	-- select ~ into : into 뒤에 기술한 변수에 select 값을 대입
+	select sabun, saname, sapay into vsabun,vsaname,vsapay
+	from sawon where sabun = &bun; 
+	--출력
+	dbms_output.put_line('실행 결과');
+	dbms_output.put_line('사원 번호 :'|| vsabun);
+	dbms_output.put_line('이름 :'|| vsaname);
+	dbms_output.put_line('급여 :'|| vsapay);
+end;
+/
+/*
+
+sabun은 pk 이므로 묵시적 커서
+*/
+
+- accept [변수명] prompt 입력메시지
+
+  accept에서 받은 변수값을 사용할 때는 변수명 앞에 "&"을 붙입니다.
+--------------------------------------------------------- sql plus 예제
+
+ed plsql_sawon2_demo.sql
+@plsql_sawon2_demo.sql        만들고 실행.
+----------------------------------------------------
+
+accept bun prompt '사원번호 입력 :'
+declare
+   vsawon sawon%rowtype;
+
+begin
+   select * into vsawon
+   from sawon where sabun = &bun;
+   dbms_output.put_line('실행결과');
+   dbms_output.put_line('사원번호 : '||vsawon.sabun);
+   dbms_output.put_line('이름 : '||vsawon.saname);
+   dbms_output.put_line('직책 : '||vsawon.sajob);
+   dbms_output.put_line('급여 : '||vsawon.sapay);
+
+end;
+/
+
+
+
+-----------------------------------------------------------------
+
+
+accept bun prompt  ----- > 스캐너 역할을 한다.
+
+----------------------set verify off  --old new 로그값 숨겨줄때 사용
+
+dbms_output.put_line('평균급여 : '||vsawon.avg(sapay));
+
+from 절 뒤에 검색 결과가 %rowType 뒤에 들어온다....
+
+
+ed sawon_exam.sql
+
+부서번호 : 10
+부서이름 : 총무부
+평균급여 : 2900
+
+accept bun prompt '부서번호 입력 :'
+declare
+   vdeptno sawon.deptno%type;
+   vdname dept.dname%type;
+   vavg sawon.sapay%type;
+
+
+begin
+   select s.deptno deptno,d.dname dname,avg(nvl(s.sapay,0)) into vdeptno,vdname,vavg
+   from sawon s, dept d where s.deptno = d.deptno and s.deptno= &bun
+   group by s.deptno,d.dname;
+
+   dbms_output.put_line('실행결과');
+   dbms_output.put_line('부서번호 : '||vdeptno);
+   dbms_output.put_line('이름 : '||vdname);
+   dbms_output.put_line('급여 : '||vavg);
+
+end;
+/
+
+/*
+
+	사원테이블에서 입력 받은 부서번호의 평균 급여를 계산해주는 PL/SQL을 만드시오.
+	단) %type을 사용해서 작성해보기
+*/
+
+create table sawon_new as select * from sawon;
+
+alter table sawon_new add(comm number(5));  --컬럼 추가.
+
+update sawon_new set comm = 
+		if vsapay < 1000 then vsapay /  10
+		
+		--elsif 1000<= vsapay and vsapay <= 2000 then vsapay /  15 
+		elsif vsapay > 2000 then vsapay / 20
+		elsif vsapay = null then 0
+		
+		end if;
+	where vdeptno = %bun;
+
+
+
+
+
+-----------------------------------------------프로시져 생성------------------------------------------------------
+				             --여기의 cur과 아래의 cur가 연결되어야 한다는것을 기억
+create or replace procedure p_sawon(deptnum IN number,cur OUT SYS_REFCURSOR)
+is
+begin
+	open cur for    /*여기의 cur*/
+	select * from sawon_px
+	where deptno= deptnum;
+end;
+/
+                                 
+
+
+create or replace procedure ps_in(
+sname in sawon_px.saname%type,
+dno in sawon_px.deptno%type,
+sjob in sawon_px.sajob%type,
+spay in sawon_px.sapay%type,
+sgender in sawon_px.sgender%type
+)
+is
+begin
+	insert into sawon_px
+	(sabun,saname,deptno, sajob,sapay, sahire, sgender)
+	values(sa_px_seq.nextVal,sname,dno,sjob,spay,sysdate,sgender);
+end;
+/
+
+
+프로시저를 실행할때 시퀀스값이 있을경우, 시퀀스가 없으면 생성해야 한다.
+
+ex)
+create sequence sa_px_seq
+increment by 1
+start with 25;
+
+--------------------------
+
+화면 클리어 clscl
+
+
+
+------------------------------
+/*
+
+	Function(함수)
+	목적: 자주 사용되는 계산식 또는 수식을 미리 생성하여 호출해서 사용
+	=> 대상 테이블이 없다.
+	문장의 일부로 호출
+	---out 이 없다. 대신 리턴값이 존재
+
+
+ 
+*/
+create or replace function f_name(name varchar2)
+return varchar2
+is 
+	v_name varchar2(20);
+begin
+	v_name := substr(name,2,2);
+	return v_name;
+end;
+/
+
+
+================주민번호 잘라서 성별 리턴하는 예제.
+
+
+create or replace function ju_num(jumin varchar2)
+return varchar2
+is 
+
+begin
+	if substr(jumin,8,1) = 1 or substr(jumin,8,1) =3 then
+		return '남자';
+	else return '여자';
+	end if;
+
+end;
+/
+
+
+========= 생성하고, @생성한파일명 으로 펑션파일 실행 시킨 후 펑션을 사용하면 된다.
+
+
+입력 트리거 
+
+create or replace trigger gogek_i
+	after insert on gogek
+	for each row
+begin
+	insert into gogek_ex
+	values(:new.gobun,:new.goname, :new.gotel,:new.gojumin,:new.godam);
+end;
+
+
+삭제 트리거 triggerDel.sql
+
+create or replace trigger gogek_q
+	after delete on gogek
+	for each row
+begin
+	delete from gogek_ex where gobun = :old.gobun;
+end;
+/
